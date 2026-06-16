@@ -1,0 +1,57 @@
+# Default experiment configuration
+# Copy this to your project's configs/ directory and modify.
+
+model:
+  architecture: unet           # Options: unet, resnet, vit, custom
+  hidden_dims: [64, 128, 256]
+  activation: relu             # relu, gelu, leaky_relu, silu
+  dropout: 0.0
+  normalization: batch         # batch, layer, instance, group, none
+
+training:
+  lr: 1e-4
+  lr_scheduler: cosine         # cosine, step, plateau, constant
+  lr_warmup_epochs: 5
+  optimizer: adam              # adam, adamw, sgd, sgd_nesterov
+  weight_decay: 0.0
+  batch_size: 32
+  epochs: 100
+  gradient_clip: null          # null = no clipping, or float max norm
+  mixed_precision: fp16        # fp16, bf16, fp32, no
+
+data:
+  dataset: cifar10
+  data_dir: ./data
+  val_split: 0.2
+  num_workers: 4
+  pin_memory: true
+  augmentation:
+    random_flip: true
+    random_rotation: 0         # degrees, 0 = disabled
+    color_jitter: 0.0          # strength, 0.0 = disabled
+    normalize: true
+
+evaluation:
+  metrics:                     # List of metrics to compute
+    - accuracy
+    - f1
+  checkpoint_metric: val_loss  # Metric to use for best checkpoint
+  checkpoint_mode: min         # min or max
+  eval_every_n_epochs: 1
+
+logging:
+  project: research-project
+  entity: null                 # wandb entity/team name
+  tags: []
+  log_every_n_steps: 10
+  save_checkpoints: true
+  save_top_k: 3
+
+reproducibility:
+  seed: 42
+  deterministic: true
+
+system:
+  device: auto                 # auto, cuda, cpu
+  num_gpus: 1
+  distributed: false           # DDP if num_gpus > 1

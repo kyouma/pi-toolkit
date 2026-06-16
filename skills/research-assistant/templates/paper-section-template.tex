@@ -1,0 +1,158 @@
+% ======================================================================
+% Paper Section Template
+% Use this structure when writing a paper/research note section.
+% ======================================================================
+
+% ---------- Introduction ----------
+\section{Introduction}
+\label{sec:intro}
+
+\paragraph{Motivation.}
+% Why does this problem matter? Real-world impact, scientific importance.
+
+\paragraph{Problem.}
+% Formal statement: what is the task, what are the inputs/outputs.
+
+\paragraph{Limitations of existing work.}
+% What's wrong with current methods? Be specific and cite.
+
+\paragraph{Our contribution.}
+% What do we propose? Bullet list:
+% \begin{itemize}
+%   \item Novel method X that addresses limitation Y
+%   \item Theoretical analysis showing Z
+%   \item Empirical results demonstrating W improvement
+% \end{itemize}
+
+% ---------- Related Work ----------
+\section{Related Work}
+\label{sec:related}
+
+% Position your work relative to:
+% - Classical / traditional methods
+% - Learning-based methods
+% - Hybrid approaches
+% - Specific sub-areas
+
+% Use a table for comparison if helpful:
+% \begin{table}[t]
+%   \centering
+%   \caption{Comparison with prior work.}
+%   \label{tab:related}
+%   \begin{tabular}{lccc}
+%     \toprule
+%     Method & Handles X & Real-time & Trainable \\
+%     \midrule
+%     Method A & Yes & No & No \\
+%     Method B & No & Yes & Yes \\
+%     \textbf{Ours} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+% ---------- Method ----------
+\section{Proposed Method}
+\label{sec:method}
+
+\subsection{Problem Formulation}
+% Math notation. Define all variables.
+% \begin{equation}
+%   \min_{\theta} \mathbb{E}_{(\mathbf{x}, \mathbf{y}) \sim \mathcal{D}} [\ell(f_\theta(\mathbf{x}), \mathbf{y})]
+% \end{equation}
+
+\subsection{Proposed Approach}
+% Detailed method description. Algorithm pseudocode if applicable.
+
+% \begin{algorithm}[t]
+%   \caption{Our proposed algorithm}
+%   \label{alg:ours}
+%   \begin{algorithmic}
+%     \State \textbf{Input:} ...
+%     \State \textbf{Output:} ...
+%     \For{each iteration}
+%       \State ...
+%     \EndFor
+%   \end{algorithmic}
+% \end{algorithm}
+
+\subsection{Theoretical Analysis}
+% Convergence, complexity, invariance, etc.
+% \begin{theorem}
+%   Under assumptions A1-A3, Algorithm 1 converges at rate O(1/T).
+% \end{theorem}
+% \begin{proof}
+%   ...
+% \end{proof}
+
+% ---------- Experiments ----------
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Experimental Setup}
+
+\paragraph{Datasets.}
+% List datasets, sizes, splits, preprocessing.
+
+\paragraph{Baselines.}
+% Methods compared, with brief description and citations.
+
+\paragraph{Implementation Details.}
+% Architecture, hyperparameters, training, hardware.
+% Include a table:
+% \begin{table}[t]
+%   \centering
+%   \caption{Hyperparameters.}
+%   \label{tab:hyperparams}
+%   \begin{tabular}{ll}
+%     \toprule
+%     Parameter & Value \\
+%     \midrule
+%     Learning rate & $10^{-4}$ \\
+%     Batch size & 32 \\
+%     Optimizer & Adam \\
+%     Epochs & 100 \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+\subsection{Main Results}
+% Table with key comparison:
+% \begin{table}[t]
+%   \centering
+%   \caption{Quantitative results. Best in bold, second underlined.}
+%   \label{tab:main-results}
+%   \begin{tabular}{lcc}
+%     \toprule
+%     Method & PSNR $\uparrow$ & SSIM $\uparrow$ \\
+%     \midrule
+%     Baseline A & 28.3 $\pm$ 0.2 & 0.892 $\pm$ 0.003 \\
+%     Baseline B & 29.1 $\pm$ 0.3 & 0.901 $\pm$ 0.004 \\
+%     \textbf{Ours} & \textbf{30.7 $\pm$ 0.2} & \textbf{0.934 $\pm$ 0.002} \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+\subsection{Ablation Studies}
+% What matters and why? Remove each component.
+% \begin{figure}[t]
+%   \centering
+%   \includegraphics[width=\columnwidth]{results/figures/ablation.pdf}
+%   \caption{Ablation study: impact of each component.}
+%   \label{fig:ablation}
+% \end{figure}
+
+% ---------- Discussion ----------
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{Limitations.}
+% Be honest. What doesn't your method handle?
+
+\paragraph{Future Work.}
+% What would you do next with unlimited time?
+
+% ---------- Conclusion ----------
+\section{Conclusion}
+\label{sec:conclusion}
+
+% Summary in 3-5 sentences: problem, method, key result, impact.

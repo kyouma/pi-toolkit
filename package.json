@@ -1,0 +1,13 @@
+{
+  "name": "pi-toolkit",
+  "version": "0.1.0",
+  "description": "Web search, PDF reading, research skills, and system prompts for pi coding agent",
+  "keywords": ["pi-package"],
+  "author": "kyouma",
+  "license": "MIT",
+  "pi": {
+    "extensions": ["./extensions"],
+    "skills": ["./skills"],
+    "prompts": ["./prompts"]
+  }
+}

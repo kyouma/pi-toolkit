@@ -1,0 +1,10 @@
+# Python (pdf2md.py)
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
