@@ -23,11 +23,13 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 | `research-assistant` | Full research workflow: survey → prototype → experiment → publish |
 | `symbolic-computation` | Symbolic math with SymPy (algebra, calculus, ODEs, PDEs) |
 
-### Prompts
+### System prompt append
 
-| Prompt | Description |
-|---|---|
-| `no-unsolicited-modifications` | Forbids pi from creating/editing/deleting files without explicit command |
+Copy `APPEND_SYSTEM.md` to your pi config directory to prevent unsolicited file modifications:
+
+```bash
+cp APPEND_SYSTEM.md ~/.pi/agent/
+```
 
 ## Install
 

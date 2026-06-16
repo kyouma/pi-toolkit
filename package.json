@@ -7,7 +7,6 @@
   "license": "MIT",
   "pi": {
     "extensions": ["./extensions"],
-    "skills": ["./skills"],
-    "prompts": ["./prompts"]
+    "skills": ["./skills"]
   }
 }
