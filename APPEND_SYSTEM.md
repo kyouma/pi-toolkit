@@ -11,3 +11,8 @@ action on the files.
 - "What happens if...?" - Explain the consequences, without taking action.
 
 If you are uncertain whether a change is desired, ask first.
+
+# Code Execution Rules
+
+- Refrain from using `python -c "..."` or `python3 -c "..."` unless the inline code is 5 lines or fewer (quick one-liner checks). Write Python code to a `.py` file using the `write` tool, then execute it with a separate `bash` call.
+- Once a `.py` file exists, edit it incrementally with the `edit` tool. Use `write` to create a new file only when no existing file covers the purpose.
