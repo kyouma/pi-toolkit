@@ -48,7 +48,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 
 ### System prompt append
 
-✓ **Polished.** Copy `APPEND_SYSTEM.md` to prevent unsolicited file modifications:
+✓ **Polished.** Copy `APPEND_SYSTEM.md` into `~/.pi/agent/` to prevent unsolicited file modifications:
 
 ```bash
 cp APPEND_SYSTEM.md ~/.pi/agent/
