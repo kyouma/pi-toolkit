@@ -33,7 +33,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 | | `code_search` | GitHub repository search |
 | | `web_fetch` | Fetch URL content (HTML text or file download) |
 | `no-inline-python` ✓ | — | Blocks inline Python scripts in bash commands |
-| `no-unsolicited-modifications` | — | Prevents unsolicited file modifications (used with `APPEND_SYSTEM.md`) |
+| `no-unsolicited-modifications` | — | Prevents unsolicited file modifications |
 | `read-pdf` | `read_pdf` | Extract text & math from PDFs as Markdown+LaTeX |
 | `zhiguai` | — | TUI themes inspired by Chinese 志怪小说 (搜神记 · 稽神录 · 聊斋志异) |
 
