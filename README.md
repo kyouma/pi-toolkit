@@ -10,10 +10,19 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 > installing the whole package — that way you avoid pulling in unfinished
 > extensions alongside them.
 >
-> Polished:
-> - Extensions: `web-search`, `no-inline-python`
-> - Skills: `literature-survey`
-> - System prompt: `APPEND_SYSTEM.md`
+> **Polished items (copy these individually):**
+>
+> ```bash
+> # Extensions → ~/.pi/agent/extensions/
+> cp extensions/web-search.ts ~/.pi/agent/extensions/
+> cp extensions/no-inline-python.ts ~/.pi/agent/extensions/
+>
+> # Skills → ~/.pi/agent/skills/
+> cp -r skills/literature-survey ~/.pi/agent/skills/
+>
+> # System prompt append → ~/.pi/agent/
+> cp APPEND_SYSTEM.md ~/.pi/agent/
+> ```
 
 ### Extensions
 
@@ -24,6 +33,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 | | `code_search` | GitHub repository search |
 | | `web_fetch` | Fetch URL content (HTML text or file download) |
 | `no-inline-python` ✓ | — | Blocks inline Python scripts in bash commands |
+| `no-unsolicited-modifications` | — | Prevents unsolicited file modifications (used with `APPEND_SYSTEM.md`) |
 | `read-pdf` | `read_pdf` | Extract text & math from PDFs as Markdown+LaTeX |
 | `zhiguai` | — | TUI themes inspired by Chinese 志怪小说 (搜神记 · 稽神录 · 聊斋志异) |
 
