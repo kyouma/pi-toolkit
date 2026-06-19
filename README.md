@@ -13,6 +13,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 | | `code_search` | GitHub repository search |
 | | `web_fetch` | Fetch URL content (HTML text or file download) |
 | `read-pdf` | `read_pdf` | Extract text & math from PDFs as Markdown+LaTeX |
+| `zhiguai` | — | TUI themes inspired by Chinese 志怪小说 (搜神记 · 稽神录 · 聊斋志异) |
 
 ### Skills
 
@@ -41,6 +42,18 @@ Or try without installing:
 
 ```bash
 pi -e git:github.com/kyouma/pi-toolkit
+```
+
+### Usage
+
+#### zhiguai
+
+```
+/zhiguai manuscript  — 古卷风格 (aged manuscript)
+/zhiguai inkwash     — 水墨风格 (ink-wash painting)
+/zhiguai nightwalk   — 夜行风格 (ghost-fire night journey)
+/zhiguai off         — 关闭 (turn off)
+/zhiguai             — interactive menu
 ```
 
 ## Dependencies
