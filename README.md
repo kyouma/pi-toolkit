@@ -4,14 +4,26 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 
 ## What's inside
 
+> **Note:** This repo is a mixed bag of polished and experimental components.
+> Only the items marked **✓ polished** below are production-ready.
+> For those, copy them directly into your Pi folders rather than
+> installing the whole package — that way you avoid pulling in unfinished
+> extensions alongside them.
+>
+> Polished:
+> - Extensions: `web-search`, `no-inline-python`
+> - Skills: `literature-survey`
+> - System prompt: `APPEND_SYSTEM.md`
+
 ### Extensions
 
 | Extension | Tool | Description |
 |---|---|---|
-| `web-search` | `web_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) |
+| `web-search` ✓ | `web_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) |
 | | `academic_search` | Academic search (arXiv + OpenAlex + CrossRef) |
 | | `code_search` | GitHub repository search |
 | | `web_fetch` | Fetch URL content (HTML text or file download) |
+| `no-inline-python` ✓ | — | Blocks inline Python scripts in bash commands |
 | `read-pdf` | `read_pdf` | Extract text & math from PDFs as Markdown+LaTeX |
 | `zhiguai` | — | TUI themes inspired by Chinese 志怪小说 (搜神记 · 稽神录 · 聊斋志异) |
 
@@ -19,14 +31,14 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 
 | Skill | Purpose |
 |---|---|
-| `literature-survey` | Systematic literature survey with PRISMA synthesis |
+| `literature-survey` ✓ | Systematic literature survey with PRISMA synthesis |
 | `markdown-to-pdf` | Compile Markdown + LaTeX math to A4 PDF via Pandoc |
 | `research-assistant` | Full research workflow: survey → prototype → experiment → publish |
 | `symbolic-computation` | Symbolic math with SymPy (algebra, calculus, ODEs, PDEs) |
 
 ### System prompt append
 
-Copy `APPEND_SYSTEM.md` to your pi config directory to prevent unsolicited file modifications:
+✓ **Polished.** Copy `APPEND_SYSTEM.md` to prevent unsolicited file modifications:
 
 ```bash
 cp APPEND_SYSTEM.md ~/.pi/agent/
