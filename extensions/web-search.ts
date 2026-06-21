@@ -737,6 +737,7 @@ export default function (pi: ExtensionAPI) {
 
 			if (source) {
 				// Explicit backend
+				_onUpdate?.({ content: [{ type: "text", text: `Searching for "${query}" via ${source}...` }], details: { query, backend: source } });
 				let result: string | null = null;
 				try {
 					switch (source) {
@@ -759,10 +760,11 @@ export default function (pi: ExtensionAPI) {
 				}
 				const output = result ?? `No results found via ${source}.`;
 				setCache(cacheKey, output);
-				return { content: [{ type: "text", text: output }], details: { query, source, cached: false } };
+				return { content: [{ type: "text", text: output }], details: { query, backend: source, cached: false } };
 			}
 
 			// Fallback chain
+			_onUpdate?.({ content: [{ type: "text", text: `Searching for "${query}"...` }], details: { query } });
 			const chain: Array<{ name: string; search: () => Promise<string | null> }> = [
 				{ name: "Exa", search: () => searchExa(query, numResults) },
 				{ name: "Tavily", search: () => searchTavily(query, numResults) },
@@ -793,7 +795,14 @@ export default function (pi: ExtensionAPI) {
 		},
 
 		renderResult(result, { expanded, isPartial }, theme, _context) {
-			if (isPartial) return new Text(theme.fg("warning", "Searching..."), 0, 0);
+			if (isPartial) {
+				const pd = result.details as { query?: string; backend?: string } | undefined;
+				let txt = theme.fg("warning", "Searching");
+				if (pd?.query) txt += theme.fg("accent", ` for "${pd.query}"`);
+				if (pd?.backend) txt += theme.fg("dim", ` via ${pd.backend}`);
+				txt += theme.fg("warning", "...");
+				return new Text(txt, 0, 0);
+			}
 			if (result.isError) return new Text(theme.fg("error", "Search failed"), 0, 0);
 			const details = result.details as { query?: string; backend?: string } | undefined;
 			let text = theme.fg("success", "Search results");
@@ -845,6 +854,7 @@ export default function (pi: ExtensionAPI) {
 
 			await rateLimit();
 
+			_onUpdate?.({ content: [{ type: "text", text: `Searching for "${query}"...` }], details: { query } });
 			const settled = await Promise.allSettled([
 				searchArxiv(query, numResults),
 				searchOpenAlex(query, numResults),
@@ -873,7 +883,13 @@ export default function (pi: ExtensionAPI) {
 		},
 
 		renderResult(result, { expanded, isPartial }, theme, _context) {
-			if (isPartial) return new Text(theme.fg("warning", "Searching..."), 0, 0);
+			if (isPartial) {
+				const pd = result.details as { query?: string } | undefined;
+				let txt = theme.fg("warning", "Searching");
+				if (pd?.query) txt += theme.fg("accent", ` for "${pd.query}"`);
+				txt += theme.fg("warning", "...");
+				return new Text(txt, 0, 0);
+			}
 			if (result.isError) return new Text(theme.fg("error", "Search failed"), 0, 0);
 			const details = result.details as { query?: string } | undefined;
 			let text = theme.fg("success", "Academic results");
@@ -923,6 +939,7 @@ export default function (pi: ExtensionAPI) {
 
 			await rateLimit();
 
+			_onUpdate?.({ content: [{ type: "text", text: `Searching for "${query}"...` }], details: { query } });
 			try {
 				const result = await searchGitHub(query, numResults);
 				if (result === null) {
@@ -939,7 +956,13 @@ export default function (pi: ExtensionAPI) {
 		},
 
 		renderResult(result, { expanded, isPartial }, theme, _context) {
-			if (isPartial) return new Text(theme.fg("warning", "Searching..."), 0, 0);
+			if (isPartial) {
+				const pd = result.details as { query?: string } | undefined;
+				let txt = theme.fg("warning", "Searching");
+				if (pd?.query) txt += theme.fg("accent", ` for "${pd.query}"`);
+				txt += theme.fg("warning", "...");
+				return new Text(txt, 0, 0);
+			}
 			if (result.isError) return new Text(theme.fg("error", "Search failed"), 0, 0);
 			const details = result.details as { query?: string } | undefined;
 			let text = theme.fg("success", "Code search results");
