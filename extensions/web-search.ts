@@ -134,6 +134,19 @@ async function mcpCall(
 //  WEB SEARCH BACKENDS  (fallback chain: Exa → Tavily → Brave → DuckDuckGo)
 // =========================================================================
 
+type SearchErrorKind = "unconfigured" | "auth" | "rate_limit" | "server" | "network" | "unknown";
+
+class SearchError extends Error {
+	kind: SearchErrorKind;
+	hint?: string;
+	constructor(kind: SearchErrorKind, message: string, hint?: string) {
+		super(message);
+		this.name = "SearchError";
+		this.kind = kind;
+		this.hint = hint;
+	}
+}
+
 // ─── Exa (MCP — free, no key needed for basic use) ──────────────────────────
 async function searchExa(query: string, numResults: number): Promise<string | null> {
 	const url = process.env.EXA_API_KEY
@@ -171,21 +184,41 @@ function getTavilyApiKey(): string | null {
 
 async function searchTavily(query: string, maxResults: number): Promise<string | null> {
 	const apiKey = getTavilyApiKey();
-	if (!apiKey) return null;
+	if (!apiKey) {
+		throw new SearchError("unconfigured", "Tavily is not configured", "Add an API key to ~/.pi/tavily.json or set TAVILY_API_KEY.");
+	}
 
-	const response = await fetch(TAVILY_API_URL, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${apiKey}`,
-		},
-		body: JSON.stringify({ query, search_depth: "basic", max_results: Math.min(maxResults, 20), include_answer: true, include_images: false }),
-		signal: AbortSignal.timeout(15_000),
-	});
+	let response: Awaited<ReturnType<typeof fetch>>;
+	try {
+		response = await fetch(TAVILY_API_URL, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${apiKey}`,
+			},
+			body: JSON.stringify({ query, search_depth: "basic", max_results: Math.min(maxResults, 20), include_answer: true, include_images: false }),
+			signal: AbortSignal.timeout(15_000),
+		});
+	} catch (err: unknown) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new SearchError("network", `Tavily request failed: ${msg}`);
+	}
 
 	if (!response.ok) {
 		const text = await response.text();
-		throw new Error(`Tavily API error (${response.status}): ${text.slice(0, 200)}`);
+		const kind: SearchErrorKind =
+			response.status === 401 || response.status === 403
+				? "auth"
+				: response.status === 429
+					? "rate_limit"
+					: response.status >= 500
+						? "server"
+						: "unknown";
+		const hint =
+			kind === "auth"
+				? "The Tavily API key is invalid or expired — update ~/.pi/tavily.json or set TAVILY_API_KEY."
+				: undefined;
+		throw new SearchError(kind, `Tavily API error (${response.status}): ${text.slice(0, 200)}`, hint);
 	}
 
 	const data = (await response.json()) as {
@@ -208,15 +241,34 @@ async function searchTavily(query: string, maxResults: number): Promise<string |
 // ─── Brave Search ───────────────────────────────────────────────────────────
 async function searchBrave(query: string, numResults: number): Promise<string | null> {
 	const apiKey = process.env.BRAVE_API_KEY;
-	if (!apiKey) return null;
+	if (!apiKey) {
+		throw new SearchError("unconfigured", "Brave is not configured", "Set the BRAVE_API_KEY environment variable.");
+	}
 
 	const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${Math.min(numResults, 20)}`;
-	const response = await fetch(url, {
-		headers: { Accept: "application/json", "X-Subscription-Token": apiKey },
-		signal: AbortSignal.timeout(15_000),
-	});
+	let response: Awaited<ReturnType<typeof fetch>>;
+	try {
+		response = await fetch(url, {
+			headers: { Accept: "application/json", "X-Subscription-Token": apiKey },
+			signal: AbortSignal.timeout(15_000),
+		});
+	} catch (err: unknown) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new SearchError("network", `Brave request failed: ${msg}`);
+	}
 
-	if (!response.ok) throw new Error(`Brave API returned status ${response.status}`);
+	if (!response.ok) {
+		const kind: SearchErrorKind =
+			response.status === 401 || response.status === 403
+				? "auth"
+				: response.status === 429
+					? "rate_limit"
+					: response.status >= 500
+						? "server"
+						: "unknown";
+		const hint = kind === "auth" ? "The BRAVE_API_KEY is invalid or expired." : undefined;
+		throw new SearchError(kind, `Brave API returned status ${response.status}`, hint);
+	}
 
 	const data = (await response.json()) as {
 		web?: { results?: Array<{ title: string; url: string; description?: string }> };
@@ -756,7 +808,8 @@ export default function (pi: ExtensionAPI) {
 					}
 				} catch (err: unknown) {
 					const msg = err instanceof Error ? err.message : String(err);
-					return { content: [{ type: "text", text: `Search failed (${source}): ${msg}` }], isError: true, details: {} };
+					const hint = err instanceof SearchError ? err.hint : undefined;
+					throw new Error(`Search failed (${source}): ${msg}${hint ? `\nHint: ${hint}` : ""}`);
 				}
 				const output = result ?? `No results found via ${source}.`;
 				setCache(cacheKey, output);
@@ -783,6 +836,8 @@ export default function (pi: ExtensionAPI) {
 						return { content: [{ type: "text", text: output }], details: { query, backend: name, cached: false } };
 					}
 				} catch (err: unknown) {
+					// An unconfigured backend is not a failure — skip it silently.
+					if (err instanceof SearchError && err.kind === "unconfigured") continue;
 					lastError = err instanceof Error ? err.message : String(err);
 				}
 			}
@@ -790,11 +845,10 @@ export default function (pi: ExtensionAPI) {
 			const msg = lastError
 				? `All web search backends failed. Last error: ${lastError}`
 				: `No results found from any web search backend.`;
-			setCache(cacheKey, msg);
-			return { content: [{ type: "text", text: msg }], isError: true, details: {} };
+			throw new Error(msg);
 		},
 
-		renderResult(result, { expanded, isPartial }, theme, _context) {
+		renderResult(result, { expanded, isPartial }, theme, context) {
 			if (isPartial) {
 				const pd = result.details as { query?: string; backend?: string } | undefined;
 				let txt = theme.fg("warning", "Searching");
@@ -803,7 +857,10 @@ export default function (pi: ExtensionAPI) {
 				txt += theme.fg("warning", "...");
 				return new Text(txt, 0, 0);
 			}
-			if (result.isError) return new Text(theme.fg("error", "Search failed"), 0, 0);
+			if (context.isError) {
+				const message = result.content[0]?.type === "text" ? result.content[0].text : "";
+				return new Text(theme.fg("error", message || "Search failed"), 0, 0);
+			}
 			const details = result.details as { query?: string; backend?: string } | undefined;
 			let text = theme.fg("success", "Search results");
 			if (details?.query) text += theme.fg("accent", ` "${details.query}"`);
@@ -882,7 +939,7 @@ export default function (pi: ExtensionAPI) {
 			return { content: [{ type: "text", text: output }], details: { query, cached: false } };
 		},
 
-		renderResult(result, { expanded, isPartial }, theme, _context) {
+		renderResult(result, { expanded, isPartial }, theme, context) {
 			if (isPartial) {
 				const pd = result.details as { query?: string } | undefined;
 				let txt = theme.fg("warning", "Searching");
@@ -890,7 +947,10 @@ export default function (pi: ExtensionAPI) {
 				txt += theme.fg("warning", "...");
 				return new Text(txt, 0, 0);
 			}
-			if (result.isError) return new Text(theme.fg("error", "Search failed"), 0, 0);
+			if (context.isError) {
+				const message = result.content[0]?.type === "text" ? result.content[0].text : "";
+				return new Text(theme.fg("error", message || "Search failed"), 0, 0);
+			}
 			const details = result.details as { query?: string } | undefined;
 			let text = theme.fg("success", "Academic results");
 			if (details?.query) text += theme.fg("accent", ` "${details.query}"`);
@@ -951,11 +1011,11 @@ export default function (pi: ExtensionAPI) {
 				return { content: [{ type: "text", text: result }], details: { query, cached: false } };
 			} catch (err: unknown) {
 				const msg = err instanceof Error ? err.message : String(err);
-				return { content: [{ type: "text", text: `GitHub search error: ${msg}` }], isError: true, details: {} };
+				throw new Error(`GitHub search error: ${msg}`);
 			}
 		},
 
-		renderResult(result, { expanded, isPartial }, theme, _context) {
+		renderResult(result, { expanded, isPartial }, theme, context) {
 			if (isPartial) {
 				const pd = result.details as { query?: string } | undefined;
 				let txt = theme.fg("warning", "Searching");
@@ -963,7 +1023,10 @@ export default function (pi: ExtensionAPI) {
 				txt += theme.fg("warning", "...");
 				return new Text(txt, 0, 0);
 			}
-			if (result.isError) return new Text(theme.fg("error", "Search failed"), 0, 0);
+			if (context.isError) {
+				const message = result.content[0]?.type === "text" ? result.content[0].text : "";
+				return new Text(theme.fg("error", message || "Search failed"), 0, 0);
+			}
 			const details = result.details as { query?: string } | undefined;
 			let text = theme.fg("success", "Code search results");
 			if (details?.query) text += theme.fg("accent", ` "${details.query}"`);
@@ -1036,17 +1099,16 @@ export default function (pi: ExtensionAPI) {
 				return await processTextResponse(response, url);
 			} catch (err: unknown) {
 				const msg = err instanceof Error ? err.message : String(err);
-				return {
-					content: [{ type: "text", text: `Fetch error: ${msg}` }],
-					isError: true,
-					details: {},
-				};
+				throw new Error(`Fetch error: ${msg}`);
 			}
 		},
 
-		renderResult(result, { expanded, isPartial }, theme, _context) {
+		renderResult(result, { expanded, isPartial }, theme, context) {
 			if (isPartial) return new Text(theme.fg("warning", "Fetching..."), 0, 0);
-			if (result.isError) return new Text(theme.fg("error", "Fetch failed"), 0, 0);
+			if (context.isError) {
+				const message = result.content[0]?.type === "text" ? result.content[0].text : "";
+				return new Text(theme.fg("error", message || "Fetch failed"), 0, 0);
+			}
 			const details = result.details as { url?: string; length?: number; sizeBytes?: number; path?: string } | undefined;
 			const url = details?.url ?? "unknown";
 			const size = details?.length ?? details?.sizeBytes ?? 0;
