@@ -54,6 +54,24 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 cp APPEND_SYSTEM.md ~/.pi/agent/
 ```
 
+## Useful third-party extensions
+
+Extensions written by other authors that work well alongside this toolkit.
+They are **not** part of this repository — install them from their own
+sources and review their licenses and requirements.
+
+| Extension | Author | Description |
+|---|---|---|
+| [`pi-tool-display`](https://github.com/MasuRii/pi-tool-display) | [MasuRii](https://github.com/MasuRii) | Compact tool-call rendering, adaptive edit/write diffs, output truncation, thinking labels, and an optional native user prompt box for a cleaner TUI. Three presets: `opencode`, `balanced`, `verbose`. |
+
+```bash
+pi install npm:pi-tool-display
+# or
+pi install git:github.com/MasuRii/pi-tool-display
+```
+
+After installing, open its settings with `/tool-display`.
+
 ## Install
 
 ```bash
