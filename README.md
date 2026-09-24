@@ -28,7 +28,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 
 | Extension | Tool | Description |
 |---|---|---|
-| `web-search` ✓ | `web_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) |
+| `web-search` ✓ | `internet_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) |
 | | `academic_search` | Academic search (arXiv + OpenAlex + CrossRef) |
 | | `code_search` | GitHub repository search |
 | | `web_fetch` | Fetch URL content (HTML text or file download) |
@@ -63,14 +63,19 @@ sources and review their licenses and requirements.
 | Extension | Author | Description |
 |---|---|---|
 | [`pi-tool-display`](https://github.com/MasuRii/pi-tool-display) | [MasuRii](https://github.com/MasuRii) | Compact tool-call rendering, adaptive edit/write diffs, output truncation, thinking labels, and an optional native user prompt box for a cleaner TUI. Three presets: `opencode`, `balanced`, `verbose`. |
+| [`pi-web-access`](https://github.com/nicobailon/pi-web-access) | [Nico Bailon](https://github.com/nicobailon) | Web search across 20+ providers, URL fetching, GitHub repo cloning, PDF extraction, and YouTube/local video understanding (`web_search`, `source_check`, `fetch_content`). Its `web_search` tool is why this toolkit's extension registers as `internet_search` — both can be installed side by side without a name collision. |
+| [`pi-docparser`](https://github.com/maxedapps/pi-docparser) | [maxedapps](https://github.com/maxedapps) | Local document understanding powered by LiteParse v2: parse, phrase-search with bounding boxes, and screenshot pages of PDFs, DOCX, PPTX, XLSX, CSV, and images (`document_parse`, `document_search`, `document_screenshot`), plus a companion skill. |
 
 ```bash
 pi install npm:pi-tool-display
 # or
 pi install git:github.com/MasuRii/pi-tool-display
+
+pi install npm:pi-web-access
+pi install npm:pi-docparser
 ```
 
-After installing, open its settings with `/tool-display`.
+After installing `pi-tool-display`, open its settings with `/tool-display`.
 
 ## Install
 
