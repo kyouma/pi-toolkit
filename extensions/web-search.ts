@@ -2,7 +2,7 @@
  * Search & Fetch Tools Extension
  *
  * Four tools:
- *  - web_search:       General web search (Exa → Tavily → Brave → DuckDuckGo fallback chain)
+ *  - internet_search:  General web search (Exa → Tavily → Brave → DuckDuckGo fallback chain)
  *  - academic_search:  Academic paper search (arXiv + OpenAlex + CrossRef, parallel, combined)
  *  - code_search:      GitHub repository search
  *  - web_fetch:        Fetch a URL (HTML→text, files→disk for PDF processing)
@@ -741,9 +741,9 @@ async function saveFileFromResponse(response: Response, url: string) {
 export default function (pi: ExtensionAPI) {
 	const currentYear = new Date().getFullYear();
 
-	// ─── web_search ──────────────────────────────────────────────────────────
+	// ─── internet_search ─────────────────────────────────────────────────────
 	pi.registerTool({
-		name: "web_search",
+		name: "internet_search",
 		label: "Web Search",
 		description: [
 			"Search the internet for general information, current events, and real-time data.",
@@ -758,8 +758,8 @@ export default function (pi: ExtensionAPI) {
 		].join("\n"),
 		promptSnippet: "Search the web for general information, current events, and recent data",
 		promptGuidelines: [
-			"Use web_search for general web searches, current events, real-time data, and documentation lookups.",
-			"Use web_search with source='exa' or source='tavily' to force a specific backend.",
+			"Use internet_search for general web searches, current events, real-time data, and documentation lookups.",
+			"Use internet_search with source='exa' or source='tavily' to force a specific backend.",
 			"After finding a URL of interest, use web_fetch to retrieve its content.",
 			"For research papers and academic articles, use academic_search instead.",
 			"For finding code implementations or libraries, use code_search instead.",
@@ -1055,7 +1055,7 @@ export default function (pi: ExtensionAPI) {
 			"Supports arXiv paper pages, GitHub raw content, and general web pages.",
 		promptSnippet: "Download content from a URL (HTML text or files)",
 		promptGuidelines: [
-			"Use web_fetch to download content from URLs found by web_search, academic_search, or code_search.",
+			"Use web_fetch to download content from URLs found by internet_search, academic_search, or code_search.",
 			"For PDFs and other files, web_fetch saves the file to /tmp/pi-web-files/ and returns the file path.",
 			"After downloading a PDF, use read_pdf to extract its text and math content.",
 			"For arXiv papers, use the abstract page URL (arxiv.org/abs/...) or the PDF URL (arxiv.org/pdf/...).",
