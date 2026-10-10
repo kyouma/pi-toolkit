@@ -6,6 +6,9 @@
  *  - academic_search:  Academic paper search (arXiv + OpenAlex + CrossRef, parallel, combined)
  *  - code_search:      GitHub repository search
  *  - web_fetch:        Fetch a URL (HTML→text, files→disk for PDF processing)
+ *
+ * API keys: ~/.pi/internet-search.json ({ "tavilyApiKey": ..., "braveApiKey": ... })
+ * or TAVILY_API_KEY / BRAVE_API_KEY environment variables.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -166,26 +169,45 @@ async function searchExa(query: string, numResults: number): Promise<string | nu
 	return result;
 }
 
-// ─── Tavily ─────────────────────────────────────────────────────────────────
-const TAVILY_API_URL = "https://api.tavily.com/search";
-const TAVILY_CONFIG_PATH = join(homedir(), ".pi", "tavily.json");
+// ─── Search API keys (~/.pi/internet-search.json) ──────────────────────────
+const SEARCH_CONFIG_PATH = join(homedir(), ".pi", "internet-search.json");
+
+interface SearchConfig {
+	tavilyApiKey?: string;
+	braveApiKey?: string;
+}
+
+function readSearchConfig(): SearchConfig {
+	try {
+		if (existsSync(SEARCH_CONFIG_PATH)) {
+			const parsed = JSON.parse(readFileSync(SEARCH_CONFIG_PATH, "utf-8")) as SearchConfig;
+			if (parsed && typeof parsed === "object") return parsed;
+		}
+	} catch { /* ignore */ }
+	return {};
+}
+
+function configKey(value: string | undefined): string | null {
+	return typeof value === "string" && value.trim() ? value.trim() : null;
+}
 
 function getTavilyApiKey(): string | null {
 	if (process.env.TAVILY_API_KEY) return process.env.TAVILY_API_KEY;
-	try {
-		if (existsSync(TAVILY_CONFIG_PATH)) {
-			const raw = readFileSync(TAVILY_CONFIG_PATH, "utf-8");
-			const config = JSON.parse(raw) as { apiKey?: string };
-			if (config.apiKey) return config.apiKey;
-		}
-	} catch { /* ignore */ }
-	return null;
+	return configKey(readSearchConfig().tavilyApiKey);
 }
+
+function getBraveApiKey(): string | null {
+	if (process.env.BRAVE_API_KEY) return process.env.BRAVE_API_KEY;
+	return configKey(readSearchConfig().braveApiKey);
+}
+
+// ─── Tavily ─────────────────────────────────────────────────────────────────
+const TAVILY_API_URL = "https://api.tavily.com/search";
 
 async function searchTavily(query: string, maxResults: number): Promise<string | null> {
 	const apiKey = getTavilyApiKey();
 	if (!apiKey) {
-		throw new SearchError("unconfigured", "Tavily is not configured", "Add an API key to ~/.pi/tavily.json or set TAVILY_API_KEY.");
+		throw new SearchError("unconfigured", "Tavily is not configured", "Add \"tavilyApiKey\" to ~/.pi/internet-search.json or set TAVILY_API_KEY.");
 	}
 
 	let response: Awaited<ReturnType<typeof fetch>>;
@@ -216,7 +238,7 @@ async function searchTavily(query: string, maxResults: number): Promise<string |
 						: "unknown";
 		const hint =
 			kind === "auth"
-				? "The Tavily API key is invalid or expired — update ~/.pi/tavily.json or set TAVILY_API_KEY."
+				? "The Tavily API key is invalid or expired — update ~/.pi/internet-search.json or set TAVILY_API_KEY."
 				: undefined;
 		throw new SearchError(kind, `Tavily API error (${response.status}): ${text.slice(0, 200)}`, hint);
 	}
@@ -240,9 +262,9 @@ async function searchTavily(query: string, maxResults: number): Promise<string |
 
 // ─── Brave Search ───────────────────────────────────────────────────────────
 async function searchBrave(query: string, numResults: number): Promise<string | null> {
-	const apiKey = process.env.BRAVE_API_KEY;
+	const apiKey = getBraveApiKey();
 	if (!apiKey) {
-		throw new SearchError("unconfigured", "Brave is not configured", "Set the BRAVE_API_KEY environment variable.");
+		throw new SearchError("unconfigured", "Brave is not configured", "Add \"braveApiKey\" to ~/.pi/internet-search.json or set the BRAVE_API_KEY environment variable.");
 	}
 
 	const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${Math.min(numResults, 20)}`;
@@ -266,7 +288,7 @@ async function searchBrave(query: string, numResults: number): Promise<string | 
 					: response.status >= 500
 						? "server"
 						: "unknown";
-		const hint = kind === "auth" ? "The BRAVE_API_KEY is invalid or expired." : undefined;
+		const hint = kind === "auth" ? "The Brave API key is invalid or expired — update ~/.pi/internet-search.json or set BRAVE_API_KEY." : undefined;
 		throw new SearchError(kind, `Brave API returned status ${response.status}`, hint);
 	}
 

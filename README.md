@@ -14,7 +14,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 >
 > ```bash
 > # Extensions → ~/.pi/agent/extensions/
-> cp extensions/web-search.ts ~/.pi/agent/extensions/
+> cp extensions/internet-search.ts ~/.pi/agent/extensions/
 > cp extensions/no-inline-python.ts ~/.pi/agent/extensions/
 >
 > # Skills → ~/.pi/agent/skills/
@@ -28,7 +28,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 
 | Extension | Tool | Description |
 |---|---|---|
-| `web-search` ✓ | `internet_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) |
+| `internet-search` ✓ | `internet_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) |
 | | `academic_search` | Academic search (arXiv + OpenAlex + CrossRef) |
 | | `code_search` | GitHub repository search |
 | | `web_fetch` | Fetch URL content (HTML text or file download) |
@@ -106,3 +106,4 @@ pi -e git:github.com/kyouma/pi-toolkit
 - **read_pdf**: requires `python3`, `pdfminer.six` (`pip install pdfminer.six`), and optionally `mutool` (`sudo apt install mupdf-tools`) for page-range extraction
 - **markdown-to-pdf**: requires Pandoc + LuaLaTeX
 - **symbolic-computation**: requires SymPy (`pip install sympy`)
+- **internet-search** (optional): Tavily/Brave API keys in `~/.pi/internet-search.json` (`"tavilyApiKey"`, `"braveApiKey"`) or the `TAVILY_API_KEY`/`BRAVE_API_KEY` env vars (env wins). Without keys, `internet_search` falls back to free Exa and DuckDuckGo.
