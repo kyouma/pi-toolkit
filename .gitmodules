@@ -1,0 +1,3 @@
+[submodule "packages/internet-search"]
+	path = packages/internet-search
+	url = https://github.com/kyouma/pi-internet-search.git
