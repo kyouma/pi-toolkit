@@ -26,7 +26,7 @@ pi install ./packages/internet-search
 
 ## Configuration
 
-API keys live in `~/.pi/internet-search.json`; environment variables take precedence:
+API keys live in `~/.pi/agent/internet-search.json`; environment variables take precedence:
 
 ```json
 {

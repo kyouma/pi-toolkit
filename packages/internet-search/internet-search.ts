@@ -7,7 +7,7 @@
  *  - code_search:      GitHub repository search
  *  - web_fetch:        Fetch a URL (HTML→text, files→disk for PDF processing)
  *
- * API keys: ~/.pi/internet-search.json ({ "tavilyApiKey": ..., "braveApiKey": ... })
+ * API keys: ~/.pi/agent/internet-search.json ({ "tavilyApiKey": ..., "braveApiKey": ... })
  * or TAVILY_API_KEY / BRAVE_API_KEY environment variables.
  *
  * Proxy: "proxy" in the same config file (empty string forces direct
@@ -173,8 +173,8 @@ async function searchExa(query: string, numResults: number): Promise<string | nu
 	return result;
 }
 
-// ─── Search config (~/.pi/internet-search.json) ───────────────────────────
-const SEARCH_CONFIG_PATH = join(homedir(), ".pi", "internet-search.json");
+// ─── Search config (~/.pi/agent/internet-search.json) ────────────────────
+const SEARCH_CONFIG_PATH = join(homedir(), ".pi", "agent", "internet-search.json");
 
 interface SearchConfig {
 	tavilyApiKey?: string;
@@ -211,7 +211,7 @@ function getBraveApiKey(): string | null {
 // Node's fetch ignores proxy environment variables unless NODE_USE_ENV_PROXY=1,
 // so requests are routed through an undici dispatcher explicitly and behave the
 // same in every Node mode. Precedence mirrors pi-web-access: "proxy" in
-// ~/.pi/internet-search.json wins (empty string forces direct connections);
+// ~/.pi/agent/internet-search.json wins (empty string forces direct connections);
 // otherwise HTTP_PROXY/HTTPS_PROXY/ALL_PROXY in any letter case are honored.
 // NO_PROXY/no_PROXY and loopback hosts are never proxied. Only http(s)://
 // proxy URLs are supported (undici cannot tunnel SOCKS); anything else falls
@@ -293,7 +293,7 @@ const TAVILY_API_URL = "https://api.tavily.com/search";
 async function searchTavily(query: string, maxResults: number): Promise<string | null> {
 	const apiKey = getTavilyApiKey();
 	if (!apiKey) {
-		throw new SearchError("unconfigured", "Tavily is not configured", "Add \"tavilyApiKey\" to ~/.pi/internet-search.json or set TAVILY_API_KEY.");
+		throw new SearchError("unconfigured", "Tavily is not configured", "Add \"tavilyApiKey\" to ~/.pi/agent/internet-search.json or set TAVILY_API_KEY.");
 	}
 
 	let response: Awaited<ReturnType<typeof fetch>>;
@@ -324,7 +324,7 @@ async function searchTavily(query: string, maxResults: number): Promise<string |
 						: "unknown";
 		const hint =
 			kind === "auth"
-				? "The Tavily API key is invalid or expired — update ~/.pi/internet-search.json or set TAVILY_API_KEY."
+				? "The Tavily API key is invalid or expired — update ~/.pi/agent/internet-search.json or set TAVILY_API_KEY."
 				: undefined;
 		throw new SearchError(kind, `Tavily API error (${response.status}): ${text.slice(0, 200)}`, hint);
 	}
@@ -350,7 +350,7 @@ async function searchTavily(query: string, maxResults: number): Promise<string |
 async function searchBrave(query: string, numResults: number): Promise<string | null> {
 	const apiKey = getBraveApiKey();
 	if (!apiKey) {
-		throw new SearchError("unconfigured", "Brave is not configured", "Add \"braveApiKey\" to ~/.pi/internet-search.json or set the BRAVE_API_KEY environment variable.");
+		throw new SearchError("unconfigured", "Brave is not configured", "Add \"braveApiKey\" to ~/.pi/agent/internet-search.json or set the BRAVE_API_KEY environment variable.");
 	}
 
 	const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${Math.min(numResults, 20)}`;
@@ -374,7 +374,7 @@ async function searchBrave(query: string, numResults: number): Promise<string | 
 					: response.status >= 500
 						? "server"
 						: "unknown";
-		const hint = kind === "auth" ? "The Brave API key is invalid or expired — update ~/.pi/internet-search.json or set BRAVE_API_KEY." : undefined;
+		const hint = kind === "auth" ? "The Brave API key is invalid or expired — update ~/.pi/agent/internet-search.json or set BRAVE_API_KEY." : undefined;
 		throw new SearchError(kind, `Brave API returned status ${response.status}`, hint);
 	}
 

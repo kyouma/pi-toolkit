@@ -129,4 +129,4 @@ folders (`~/.pi/agent/extensions/`, `~/.pi/agent/skills/`, `~/.pi/agent/`).
 - **read_pdf**: requires `python3`, `pdfminer.six` (`pip install pdfminer.six`), and optionally `mutool` (`sudo apt install mupdf-tools`) for page-range extraction
 - **markdown-to-pdf**: requires Pandoc + LuaLaTeX
 - **symbolic-computation**: requires SymPy (`pip install sympy`)
-- **internet-search** (optional): Tavily/Brave API keys in `~/.pi/internet-search.json` (`"tavilyApiKey"`, `"braveApiKey"`) or the `TAVILY_API_KEY`/`BRAVE_API_KEY` env vars (env wins). Without keys, `internet_search` falls back to free Exa and DuckDuckGo.
+- **internet-search** (optional): Tavily/Brave API keys in `~/.pi/agent/internet-search.json` (`"tavilyApiKey"`, `"braveApiKey"`) or the `TAVILY_API_KEY`/`BRAVE_API_KEY` env vars (env wins). Without keys, `internet_search` falls back to free Exa and DuckDuckGo.
