@@ -6,15 +6,23 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 
 > **Note:** This repo is a mixed bag of polished and experimental components.
 > Only the items marked **✓ polished** below are production-ready.
-> For those, copy them directly into your Pi folders rather than
-> installing the whole package — that way you avoid pulling in unfinished
-> extensions alongside them.
+> This repo is a collection of independent items — take what you want,
+> nothing pulls in the unfinished components.
 >
-> **Polished items (copy these individually):**
+> **Polished items (take these):**
 >
 > ```bash
-> # Extensions → ~/.pi/agent/extensions/
-> cp extensions/internet-search.ts ~/.pi/agent/extensions/
+> # internet-search — standalone Pi package with dependencies (preferred):
+> pi install npm:pi-internet-search
+> # or from a local checkout (local packages are not modified by pi;
+> # --omit=peer keeps npm from bundling pi's own host-provided packages):
+> (cd packages/internet-search && npm install --omit=peer)
+> pi install ./packages/internet-search
+> # or copy it — then also install its dependency:
+> cp packages/internet-search/internet-search.ts ~/.pi/agent/extensions/
+> (cd ~/.pi/agent/extensions && npm install undici)
+>
+> # Other extensions → ~/.pi/agent/extensions/
 > cp extensions/no-inline-python.ts ~/.pi/agent/extensions/
 >
 > # Skills → ~/.pi/agent/skills/
@@ -28,7 +36,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 
 | Extension | Tool | Description |
 |---|---|---|
-| `internet-search` ✓ | `internet_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) |
+| `internet-search` ✓ | `internet_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) — standalone package: `packages/internet-search` (`pi-internet-search`) |
 | | `academic_search` | Academic search (arXiv + OpenAlex + CrossRef) |
 | | `code_search` | GitHub repository search |
 | | `web_fetch` | Fetch URL content (HTML text or file download) |
@@ -79,15 +87,30 @@ After installing `pi-tool-display`, open its settings with `/tool-display`.
 
 ## Install
 
+This repo is a collection of independent items — there is no all-in-one
+installation. Take what you want (see "What's inside" above).
+
+`internet-search` is a proper Pi package with declared dependencies:
+
 ```bash
-pi install git:github.com/kyouma/pi-toolkit
+pi install npm:pi-internet-search        # once published to npm
 ```
 
-Or try without installing:
+```bash
+# from a local checkout (local package deps are not auto-installed;
+# --omit=peer keeps npm from bundling pi's host-provided packages):
+(cd packages/internet-search && npm install --omit=peer)
+pi install ./packages/internet-search
+```
+
+Or try it without installing:
 
 ```bash
-pi -e git:github.com/kyouma/pi-toolkit
+pi -e npm:pi-internet-search
 ```
+
+The other items are plain files and directories — copy them into your Pi
+folders (`~/.pi/agent/extensions/`, `~/.pi/agent/skills/`, `~/.pi/agent/`).
 
 ### Usage
 

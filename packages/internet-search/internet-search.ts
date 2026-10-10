@@ -9,6 +9,10 @@
  *
  * API keys: ~/.pi/internet-search.json ({ "tavilyApiKey": ..., "braveApiKey": ... })
  * or TAVILY_API_KEY / BRAVE_API_KEY environment variables.
+ *
+ * Proxy: "proxy" in the same config file (empty string forces direct
+ * connections), or HTTP_PROXY/HTTPS_PROXY/ALL_PROXY in any letter case;
+ * NO_PROXY is respected. Independent of the NODE_USE_ENV_PROXY mode.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -93,7 +97,7 @@ async function mcpCall(
 		method: "tools/call" as const,
 		params: { name: toolName, arguments: args },
 	};
-	const resp = await fetch(url, {
+	const resp = await pfetch(url, {
 		method: "POST",
 		headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", ...headers },
 		body: JSON.stringify(req),
@@ -169,12 +173,14 @@ async function searchExa(query: string, numResults: number): Promise<string | nu
 	return result;
 }
 
-// ─── Search API keys (~/.pi/internet-search.json) ──────────────────────────
+// ─── Search config (~/.pi/internet-search.json) ───────────────────────────
 const SEARCH_CONFIG_PATH = join(homedir(), ".pi", "internet-search.json");
 
 interface SearchConfig {
 	tavilyApiKey?: string;
 	braveApiKey?: string;
+	/** Global proxy URL; empty string forces direct connections. */
+	proxy?: string;
 }
 
 function readSearchConfig(): SearchConfig {
@@ -201,6 +207,86 @@ function getBraveApiKey(): string | null {
 	return configKey(readSearchConfig().braveApiKey);
 }
 
+// ─── Proxy support ──────────────────────────────────────────────────────────
+// Node's fetch ignores proxy environment variables unless NODE_USE_ENV_PROXY=1,
+// so requests are routed through an undici dispatcher explicitly and behave the
+// same in every Node mode. Precedence mirrors pi-web-access: "proxy" in
+// ~/.pi/internet-search.json wins (empty string forces direct connections);
+// otherwise HTTP_PROXY/HTTPS_PROXY/ALL_PROXY in any letter case are honored.
+// NO_PROXY/no_PROXY and loopback hosts are never proxied. Only http(s)://
+// proxy URLs are supported (undici cannot tunnel SOCKS); anything else falls
+// back to a direct connection. If only an HTTP proxy is set, HTTPS targets use
+// it too.
+type FetchInit = RequestInit & { dispatcher?: unknown };
+
+function envFirst(...names: string[]): string | undefined {
+	for (const name of names) {
+		const value = process.env[name]?.trim();
+		if (value) return value;
+	}
+	return undefined;
+}
+
+function isHttpProxyUrl(value: string): boolean {
+	return /^https?:\/\//i.test(value);
+}
+
+function isLoopbackHost(host: string): boolean {
+	const h = host.toLowerCase().replace(/^\[|\]$/g, "");
+	return h === "localhost" || h === "::1" || h.startsWith("127.");
+}
+
+function resolveProxySettings(): { http: string; https: string; noProxy: string } {
+	const configured = readSearchConfig().proxy;
+	const noProxy = envFirst("no_proxy", "NO_PROXY") ?? "";
+	if (configured !== undefined) {
+		// Config wins: a URL proxies everything, an empty string forces direct.
+		const value = configured.trim();
+		return { http: value, https: value, noProxy };
+	}
+	return {
+		http: envFirst("http_proxy", "HTTP_PROXY", "all_proxy", "ALL_PROXY") ?? "",
+		https: envFirst("https_proxy", "HTTPS_PROXY", "all_proxy", "ALL_PROXY") ?? "",
+		noProxy,
+	};
+}
+
+let proxyCache: { key: string; dispatcher: unknown } | undefined;
+
+async function getProxyDispatcher(): Promise<unknown> {
+	const settings = resolveProxySettings();
+	const http = isHttpProxyUrl(settings.http) ? settings.http : "";
+	const https = isHttpProxyUrl(settings.https) ? settings.https : http; // HTTPS falls back to the HTTP proxy
+	const key = `${https}|${http}|${settings.noProxy}`;
+	if (proxyCache?.key === key) return proxyCache.dispatcher;
+	if (!http && !https) {
+		proxyCache = { key, dispatcher: undefined };
+		return undefined;
+	}
+	let dispatcher: unknown;
+	try {
+		const specifier = "undici";
+		const undici = (await import(specifier)) as {
+			EnvHttpProxyAgent: new (opts: { httpProxy?: string; httpsProxy?: string; noProxy?: string }) => unknown;
+		};
+		dispatcher = new undici.EnvHttpProxyAgent({ httpProxy: http, httpsProxy: https, noProxy: settings.noProxy });
+	} catch {
+		dispatcher = undefined; // undici unavailable — fall back to direct fetch
+	}
+	proxyCache = { key, dispatcher };
+	return dispatcher;
+}
+
+async function pfetch(url: string | URL, init?: FetchInit): Promise<Response> {
+	let hostname = "";
+	try {
+		hostname = new URL(url.toString()).hostname;
+	} catch { /* let fetch report invalid URLs */ }
+	if (hostname && isLoopbackHost(hostname)) return fetch(url, init);
+	const dispatcher = await getProxyDispatcher();
+	return dispatcher ? fetch(url, { ...init, dispatcher } as RequestInit) : fetch(url, init);
+}
+
 // ─── Tavily ─────────────────────────────────────────────────────────────────
 const TAVILY_API_URL = "https://api.tavily.com/search";
 
@@ -212,7 +298,7 @@ async function searchTavily(query: string, maxResults: number): Promise<string |
 
 	let response: Awaited<ReturnType<typeof fetch>>;
 	try {
-		response = await fetch(TAVILY_API_URL, {
+		response = await pfetch(TAVILY_API_URL, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -270,7 +356,7 @@ async function searchBrave(query: string, numResults: number): Promise<string | 
 	const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=${Math.min(numResults, 20)}`;
 	let response: Awaited<ReturnType<typeof fetch>>;
 	try {
-		response = await fetch(url, {
+		response = await pfetch(url, {
 			headers: { Accept: "application/json", "X-Subscription-Token": apiKey },
 			signal: AbortSignal.timeout(15_000),
 		});
@@ -336,7 +422,7 @@ async function searchDuckDuckGo(query: string, numResults: number): Promise<stri
 
 	// Step 1: DuckDuckGo Instant Answer API
 	const iaUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
-	const resp = await fetch(iaUrl, { signal: AbortSignal.timeout(10_000) });
+	const resp = await pfetch(iaUrl, { signal: AbortSignal.timeout(10_000) });
 	const data = (await resp.json()) as DdgResponse;
 
 	if (data.AbstractText) {
@@ -389,7 +475,7 @@ async function searchDuckDuckGo(query: string, numResults: number): Promise<stri
 	if (found < numResults) {
 		const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&srlimit=${numResults - found}`;
 		try {
-			const wikiResp = await fetch(wikiUrl, { signal: AbortSignal.timeout(10_000) });
+			const wikiResp = await pfetch(wikiUrl, { signal: AbortSignal.timeout(10_000) });
 			const wikiData = (await wikiResp.json()) as { query?: { search?: WikiSearchResult[] } };
 			const wikiResults = wikiData?.query?.search ?? [];
 			if (wikiResults.length > 0) {
@@ -418,7 +504,7 @@ async function searchArxiv(query: string, maxResults: number): Promise<string | 
 	const encoded = encodeURIComponent(query);
 	const url = `https://export.arxiv.org/api/query?search_query=all:${encoded}&start=0&max_results=${maxResults}&sortBy=relevance&sortOrder=descending`;
 
-	const response = await fetch(url, {
+	const response = await pfetch(url, {
 		headers: { "User-Agent": "pi-coding-agent/1.0" },
 		signal: AbortSignal.timeout(15_000),
 	});
@@ -458,7 +544,7 @@ async function searchOpenAlex(query: string, maxResults: number): Promise<string
 	const perPage = Math.min(maxResults, 20);
 	const url = `https://api.openalex.org/works?search=${encoded}&per_page=${perPage}&sort=relevance_score:desc`;
 
-	const response = await fetch(url, {
+	const response = await pfetch(url, {
 		headers: { "User-Agent": "pi-coding-agent/1.0" },
 		signal: AbortSignal.timeout(15_000),
 	});
@@ -528,7 +614,7 @@ async function searchCrossref(query: string, maxResults: number): Promise<string
 	const encoded = encodeURIComponent(query);
 	const url = `https://api.crossref.org/works?query=${encoded}&rows=${Math.min(maxResults, 20)}&sort=relevance&order=desc`;
 
-	const response = await fetch(url, {
+	const response = await pfetch(url, {
 		headers: { "User-Agent": "pi-coding-agent/1.0 (mailto:pi-agent@example.com)" },
 		signal: AbortSignal.timeout(15_000),
 	});
@@ -594,7 +680,7 @@ async function searchGitHub(query: string, maxResults: number): Promise<string |
 	const encoded = encodeURIComponent(query);
 	const url = `https://api.github.com/search/repositories?q=${encoded}&sort=stars&order=desc&per_page=${maxResults}`;
 
-	const response = await fetch(url, {
+	const response = await pfetch(url, {
 		headers: { Accept: "application/vnd.github.v3+json", "User-Agent": "pi-coding-agent/1.0" },
 		signal: AbortSignal.timeout(15_000),
 	});
@@ -1095,7 +1181,7 @@ export default function (pi: ExtensionAPI) {
 					? `https://arxiv.org/pdf/${arxivAbsMatch[1]}.pdf`
 					: url;
 
-				const response = await fetch(fetchUrl, {
+				const response = await pfetch(fetchUrl, {
 					headers: { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" },
 					signal: AbortSignal.timeout(30_000),
 				});
