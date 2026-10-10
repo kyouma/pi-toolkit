@@ -12,15 +12,8 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 > **Polished items (take these):**
 >
 > ```bash
-> # internet-search — standalone Pi package (own repo, included here as a submodule):
+> # internet-search — standalone Pi package (own repo, see packages/internet-search):
 > pi install git:github.com/kyouma/pi-internet-search
-> # or from this checkout (clone with --recurse-submodules; local packages are
-> # not modified by pi — --omit=peer keeps npm from bundling pi's host-provided packages):
-> (cd packages/internet-search && npm install --omit=peer)
-> pi install ./packages/internet-search
-> # or copy it — dependencies are declared in its package.json, not bundled:
-> cp packages/internet-search/{internet-search.ts,package.json} ~/.pi/agent/extensions/
-> (cd ~/.pi/agent/extensions && npm install --omit=peer)
 >
 > # Other extensions → ~/.pi/agent/extensions/
 > cp extensions/no-inline-python.ts ~/.pi/agent/extensions/
@@ -36,7 +29,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 
 | Extension | Tool | Description |
 |---|---|---|
-| `internet-search` ✓ | `internet_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) — package: [`kyouma/pi-internet-search`](https://github.com/kyouma/pi-internet-search), included as a submodule at `packages/internet-search` |
+| `internet-search` ✓ | `internet_search` | Web search (Exa → Tavily → Brave → DuckDuckGo fallback) — package: [`kyouma/pi-internet-search`](https://github.com/kyouma/pi-internet-search) (moved to its own repo, see `packages/internet-search`) |
 | | `academic_search` | Academic search (arXiv + OpenAlex + CrossRef) |
 | | `code_search` | GitHub repository search |
 | | `web_fetch` | Fetch URL content (HTML text or file download) |
@@ -91,19 +84,10 @@ This repo is a collection of independent items — there is no all-in-one
 installation. Take what you want (see "What's inside" above).
 
 `internet-search` is a proper Pi package with declared dependencies, living in
-its own repo ([kyouma/pi-internet-search](https://github.com/kyouma/pi-internet-search))
-and included here as a git submodule under `packages/internet-search`:
+its own repo ([kyouma/pi-internet-search](https://github.com/kyouma/pi-internet-search)):
 
 ```bash
 pi install git:github.com/kyouma/pi-internet-search
-```
-
-```bash
-# from a local checkout (clone with --recurse-submodules, or run
-# git submodule update --init; local package deps are not auto-installed;
-# --omit=peer keeps npm from bundling pi's host-provided packages):
-(cd packages/internet-search && npm install --omit=peer)
-pi install ./packages/internet-search
 ```
 
 Or try it without installing:
