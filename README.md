@@ -18,9 +18,9 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 > # --omit=peer keeps npm from bundling pi's own host-provided packages):
 > (cd packages/internet-search && npm install --omit=peer)
 > pi install ./packages/internet-search
-> # or copy it — then also install its dependency:
-> cp packages/internet-search/internet-search.ts ~/.pi/agent/extensions/
-> (cd ~/.pi/agent/extensions && npm install undici)
+> # or copy it — dependencies are declared in its package.json, not bundled:
+> cp packages/internet-search/{internet-search.ts,package.json} ~/.pi/agent/extensions/
+> (cd ~/.pi/agent/extensions && npm install --omit=peer)
 >
 > # Other extensions → ~/.pi/agent/extensions/
 > cp extensions/no-inline-python.ts ~/.pi/agent/extensions/

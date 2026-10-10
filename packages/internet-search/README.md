@@ -12,7 +12,7 @@ Internet search tools for [pi](https://github.com/earendil-works/pi-coding-agent
 ## Install
 
 ```bash
-pi install npm:pi-internet-search
+pi install npm:pi-internet-search   # once published to npm
 ```
 
 From a local checkout, install the runtime dependency first (pi does not modify
