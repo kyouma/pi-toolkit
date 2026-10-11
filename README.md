@@ -45,6 +45,7 @@ Extensions, skills, and prompts for [pi coding agent](https://github.com/earendi
 | `literature-survey` ✓ | Systematic literature survey with PRISMA synthesis |
 | `markdown-to-pdf` | Compile Markdown + LaTeX math to A4 PDF via Pandoc |
 | `research-assistant` | Full research workflow: survey → prototype → experiment → publish |
+| `research-frontier-prospecting` | Prospect a research (sub)field and produce validated, auditable project task definitions with gates, floors and withdrawal checks — not a literature survey |
 | `symbolic-computation` | Symbolic math with SymPy (algebra, calculus, ODEs, PDEs) |
 
 ### System prompt append
