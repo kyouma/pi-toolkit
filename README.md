@@ -67,6 +67,9 @@ sources and review their licenses and requirements.
 | [`pi-tool-display`](https://github.com/MasuRii/pi-tool-display) | [MasuRii](https://github.com/MasuRii) | Compact tool-call rendering, adaptive edit/write diffs, output truncation, thinking labels, and an optional native user prompt box for a cleaner TUI. Three presets: `opencode`, `balanced`, `verbose`. |
 | [`pi-web-access`](https://github.com/nicobailon/pi-web-access) | [Nico Bailon](https://github.com/nicobailon) | Web search across 20+ providers, URL fetching, GitHub repo cloning, PDF extraction, and YouTube/local video understanding (`web_search`, `source_check`, `fetch_content`). Its `web_search` tool is why this toolkit's extension registers as `internet_search` — both can be installed side by side without a name collision. |
 | [`pi-docparser`](https://github.com/maxedapps/pi-docparser) | [maxedapps](https://github.com/maxedapps) | Local document understanding powered by LiteParse v2: parse, phrase-search with bounding boxes, and screenshot pages of PDFs, DOCX, PPTX, XLSX, CSV, and images (`document_parse`, `document_search`, `document_screenshot`), plus a companion skill. |
+| [`pi-hermes-memory`](https://github.com/chandra447/pi-hermes-memory) | [Chandra Doredla](https://github.com/chandra447) | Persistent two-tier memory (global + per-project) with SQLite FTS5 search over past sessions, categorized failure/correction memory, reusable procedural skills, and secret scanning of everything it writes (`memory_add`, `memory_search`, `skill_manage`). |
+| [`pi-subagents`](https://github.com/nicobailon/pi-subagents) | [Nico Bailon](https://github.com/nicobailon) | Delegate work to focused child Pi sessions: builtin `scout`, `researcher`, `worker`, `reviewer`, and `oracle` agents, parallel reviewers, saved workflows, background runs, and worktree isolation (`subagent`). |
+| [`pi-copy-message`](https://github.com/fitchmultz/pi-copy-message) | [Mitch Fultz](https://github.com/fitchmultz) | Keyboard-first picker for copying raw session message text without terminal wrapping, padding, or rendered TUI artifacts (`/copy-message`, `/copy-user`). |
 
 ```bash
 pi install npm:pi-tool-display
@@ -75,6 +78,10 @@ pi install git:github.com/MasuRii/pi-tool-display
 
 pi install npm:pi-web-access
 pi install npm:pi-docparser
+
+pi install npm:pi-hermes-memory
+pi install npm:pi-subagents
+pi install npm:pi-copy-message
 ```
 
 After installing `pi-tool-display`, open its settings with `/tool-display`.
